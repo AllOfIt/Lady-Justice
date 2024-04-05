@@ -8,11 +8,16 @@ intents = discord.Intents.default()
 intents.message_content = True
 
 client = discord.Client(intents=intents)
+allUsers = {}
 
 # wrapper for discord.py user class to better serve our purposes
+# the global user list (allUsers) should be passed as the userList arguement
 class User:
-    def __init__(self,id:int,client:discord.Client):
+    def __init__(self,id:int,client:discord.Client,userList:dict):
+        #adds the new user to the global user list
+        userList[id] = self
         self.userObject:discord.User = client.get_user(id)
+        self.userList:dict = userList
         self.name = ""
         self.allegiance:User = None
         self.secretAllegiance:User = None
@@ -33,12 +38,22 @@ class User:
     def removeRole(self,role):
         pass
 
-    #might need a system for searching for the right user class, maybe a dict
+    # both of these can accept an id or User instance
     def setAllegiance(self,target):
+        if isinstance(target,int):
+            target = self.userList[target]
+        if not isinstance(target,User):
+            print("user not found or invalid type passed to setAllegiance")
+            return
         self.allegiance = target
         self.updateDatabase()
     
     def setSecretAllegiance(self,target):
+        if isinstance(target,int):
+            target = self.userList[target]
+        if not isinstance(target,User):
+            print("user not found or invalid type passed to setSecretAllegiance")
+            return
         self.secretAllegiance = target
         self.updateDatabase()
 
