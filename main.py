@@ -9,6 +9,10 @@ intents.message_content = True
 
 client = discord.Client(intents=intents)
 allUsers = {}
+ANNOUNCEMENTS = 895310090599559188 # How it works
+ROUND_TABLE = 895309794561368064
+GENERAL = 895296887408701471
+RATS = 895310870148706344
 
 # wrapper for discord.py user class to better serve our purposes
 # the global user list (allUsers) should be passed as the userList arguement
@@ -16,6 +20,7 @@ class User:
     def __init__(self,id:int,client:discord.Client,userList:dict):
         #adds the new user to the global user list
         userList[id] = self
+        self.id = id
         self.userObject:discord.User = client.get_user(id)
         self.userList:dict = userList
         self.name = ""
@@ -25,6 +30,9 @@ class User:
         self.permaBanned:bool = False
 
         self.updateDatabase(True)
+
+    def __str__(self):
+        return self.userObject.display_name
 
     def updateDatabase(self,newEntry:bool = False):
         if newEntry:
@@ -63,9 +71,11 @@ class User:
         self.userObject.guild.ban(self.userObject)
 
     def permaBan(self):
-        self.bannedDate = None
         self.permaBanned = True
-        self.userObject.guild.ban(self.userObject)
+        self.ban()
+
+    async def message(self,message):
+        await self.userObject.dm_channel.send(message)
 
 @client.event
 async def on_ready():
