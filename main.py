@@ -8,7 +8,6 @@ intents = discord.Intents.default()
 intents.message_content = True
 
 client = discord.Client(intents=intents)
-allUsers = {}
 ANNOUNCEMENTS = 895310090599559188 # How it works
 ROUND_TABLE = 895309794561368064
 GENERAL = 895296887408701471
@@ -76,6 +75,71 @@ class User:
 
     async def message(self,message):
         await self.userObject.dm_channel.send(message)
+
+# government superclass
+class Government:
+    def __init__(self,leaders):
+        self.leaders = leaders
+        self.openVotes = []
+
+    # participants are the people who can vote, channel is where the vote takes place, action is function to run if the vote passes, duration is how long the vote will last
+    # Example: currentGovernment.startVote(currentGovernment.leaders,ROUND_TABLE,Joeuser.ban())
+    def startVote(self,participants,channel,action, duration):
+        pass
+
+class Anarchy(Government):
+    pass
+
+class Dictatorship(Government):
+    pass
+
+class Monarchy(Government):
+    pass
+
+class Oligarchy(Government):
+    pass
+
+class Democracy(Government):
+    pass
+
+class Republic(Government):
+    pass
+
+
+# Motion Superclass that lets player define a power move and set their allegiance to it before it takes effect
+class Motion:
+    def __init__(self,initiator,action):
+        self.initiator = initiator
+        self.supporters = []
+        self.action = action
+
+    def support(self,supporter):
+        if supporter in self.supporters:
+            return "You already support this Cause"
+        else:
+            self.supporters.append(supporter)
+            return "You have pledged your support to this cause"
+    
+    def passMotion(self):
+        self.action()
+
+# also a superclass, this type of motion seeks to start a new government
+class TakeOver(Motion):
+    def __init__(self,newGovernment:Government):
+        super().__init__(self)
+        self.newGovernment = newGovernment
+
+    def passMotion(self):
+        global currentGovernment
+        currentGovernment = self.newGovernment
+
+class Vote:
+    def __init__(self):
+        pass
+
+
+allUsers = {}
+currentGovernment = Anarchy()
 
 @client.event
 async def on_ready():
