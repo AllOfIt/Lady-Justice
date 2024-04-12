@@ -13,9 +13,31 @@ ROUND_TABLE = 895309794561368064
 GENERAL = 895296887408701471
 RATS = 895310870148706344
 
+#superclass for anything you can lend your support to
+class Supportable:
+    #not sure if im using this right
+    def __init_subclass__(self):
+        self.name = ""
+        self.supporters = []
+        self.secret = False
+
+    def __str__(self):
+        return self.name
+
+    def support(self,supporter:User):
+        if supporter in self.supporters:
+            return f"You already support {self}"
+        self.supporters.append(supporter)
+        return f"You have pledged your support to {self}"
+        
+    def removeSupport(self,supporter:User):
+        if supporter in self.supporters:
+            self.supporters.remove(supporter)
+            return f"You have withdrawn your support from {self}"
+        return f"You don't support {self}]"
 # wrapper for discord.py user class to better serve our purposes
 # the global user list (allUsers) should be passed as the userList arguement
-class User:
+class User(Supportable):
     def __init__(self,id:int,client:discord.Client,userList:dict):
         #adds the new user to the global user list
         userList[id] = self
@@ -27,6 +49,7 @@ class User:
         self.secretAllegiance:User = None
         self.bannedDate:datetime.datetime = None
         self.permaBanned:bool = False
+        self.supporters = []
 
         self.updateDatabase(True)
 
@@ -45,14 +68,12 @@ class User:
     def removeRole(self,role):
         pass
 
-    # both of these can accept an id or User instance
+    # todo: this needs fixing
+    # target for both of these can be any supportable
     def setAllegiance(self,target):
-        if isinstance(target,int):
-            target = self.userList[target]
-        if not isinstance(target,User):
-            print("user not found or invalid type passed to setAllegiance")
-            return
+        
         self.allegiance = target
+
         self.updateDatabase()
     
     def setSecretAllegiance(self,target):
@@ -77,14 +98,15 @@ class User:
         await self.userObject.dm_channel.send(message)
 
 # government superclass
-class Government:
+class Government(Supportable):
     def __init__(self,leaders):
         self.leaders = leaders
         self.openVotes = []
+        self.openMotions = []
 
     # participants are the people who can vote, channel is where the vote takes place, action is function to run if the vote passes, duration is how long the vote will last
     # Example: currentGovernment.startVote(currentGovernment.leaders,ROUND_TABLE,Joeuser.ban())
-    def startVote(self,participants,channel,action, duration):
+    def startVote(self,participants,channel,action,duration):
         pass
 
 class Anarchy(Government):
@@ -107,21 +129,28 @@ class Republic(Government):
 
 
 # Motion Superclass that lets player define a power move and set their allegiance to it before it takes effect
-class Motion:
-    def __init__(self,initiator,action):
+class Motion(Supportable):
+    def __init__(self,name:str,initiator:User, government:Government,action:function):
+        self.name = name
         self.initiator = initiator
+        self.government = government
         self.supporters = []
         self.action = action
+        self.government.openMotions.append(self)
+        self.exitMessage = "Motion passed"
 
-    def support(self,supporter):
-        if supporter in self.supporters:
-            return "You already support this Cause"
-        else:
-            self.supporters.append(supporter)
-            return "You have pledged your support to this cause"
-    
+    def delete(self):
+        for supporter in self.supporters:
+            if supporter.allegiance == self:
+                supporter.allegiance = None
+            if supporter.secretAllegiance == self:
+                supporter.secretAllegiance = None
+        self.government.openMotions.remove(self)
+
     def passMotion(self):
         self.action()
+        self.delete()
+        return self.exitMessage
 
 # also a superclass, this type of motion seeks to start a new government
 class TakeOver(Motion):
