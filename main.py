@@ -15,7 +15,6 @@ RATS = 895310870148706344
 
 #superclass for anything you can lend your support to
 class Supportable:
-    #not sure if im using this right
     def __init_subclass__(self):
         self.name = ""
         self.supporters = []
@@ -23,18 +22,21 @@ class Supportable:
 
     def __str__(self):
         return self.name
-
-    def support(self,supporter:User):
+    
+    #supporter should be a User instance but ":User" causes an error because its not difined yet :(
+    def support(self,supporter):
         if supporter in self.supporters:
             return f"You already support {self}"
         self.supporters.append(supporter)
         return f"You have pledged your support to {self}"
-        
-    def removeSupport(self,supporter:User):
+    
+    #same issue with ":User"
+    def removeSupport(self,supporter):
         if supporter in self.supporters:
             self.supporters.remove(supporter)
             return f"You have withdrawn your support from {self}"
         return f"You don't support {self}]"
+    
 # wrapper for discord.py user class to better serve our purposes
 # the global user list (allUsers) should be passed as the userList arguement
 class User(Supportable):
@@ -54,7 +56,7 @@ class User(Supportable):
         self.updateDatabase(True)
 
     def __str__(self):
-        return self.userObject.display_name
+        return self.userObject.display_name()
 
     def updateDatabase(self,newEntry:bool = False):
         if newEntry:
@@ -77,13 +79,7 @@ class User(Supportable):
         self.updateDatabase()
     
     def setSecretAllegiance(self,target):
-        if isinstance(target,int):
-            target = self.userList[target]
-        if not isinstance(target,User):
-            print("user not found or invalid type passed to setSecretAllegiance")
-            return
-        self.secretAllegiance = target
-        self.updateDatabase()
+        pass
 
     def ban(self):
         self.bannedDate = datetime.datetime.now()
@@ -130,7 +126,7 @@ class Republic(Government):
 
 # Motion Superclass that lets player define a power move and set their allegiance to it before it takes effect
 class Motion(Supportable):
-    def __init__(self,name:str,initiator:User, government:Government,action:function):
+    def __init__(self,name:str,initiator:User, government:Government,action):
         self.name = name
         self.initiator = initiator
         self.government = government
@@ -168,7 +164,7 @@ class Vote:
 
 
 allUsers = {}
-currentGovernment = Anarchy()
+currentGovernment = Anarchy([])
 
 @client.event
 async def on_ready():
