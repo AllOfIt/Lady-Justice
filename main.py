@@ -25,19 +25,11 @@ class Supportable:
     def __str__(self):
         return self.name
 
-    # supporter should be a User instance but ":User" causes an error because its not difined yet :(
-    def support(self, supporter):
-        if supporter in self.supporters:
-            return f"You already support {self}"
-        self.supporters.append(supporter)
-        return f"You have pledged your support to {self}"
+    def support(self):
+        pass
 
-    # same issue with ":User"
-    def removeSupport(self, supporter):
-        if supporter in self.supporters:
-            self.supporters.remove(supporter)
-            return f"You have withdrawn your support from {self}"
-        return f"You don't support {self}]"
+    def removeSupport(self):
+        pass
 
 
 # wrapper for discord.py user class to better serve our purposes
@@ -60,6 +52,18 @@ class User(Supportable):
 
     def __str__(self):
         return self.userObject.display_name()
+
+    def support(self, supporter: Supportable):
+        if supporter in self.supporters:
+            return f"You already support {self}"
+        self.supporters.append(supporter)
+        return f"You have pledged your support to {self}"
+
+    def removeSupport(self, supporter: Supportable):
+        if supporter in self.supporters:
+            self.supporters.remove(supporter)
+            return f"You have withdrawn your support from {self}"
+        return f"You don't support {self}]"
 
     def updateDatabase(self, newEntry: bool = False):
         if newEntry:
