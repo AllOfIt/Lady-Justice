@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import datetime
 
 import discord
@@ -6,7 +8,6 @@ from discord.ext.commands import MissingPermissions, has_permissions
 from config import TOKEN
 
 intents = discord.Intents.default()
-from __future__ import annotations
 
 intents.message_content = True
 
