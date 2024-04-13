@@ -106,7 +106,8 @@ class Government(Supportable):
         pass
 
 class Anarchy(Government):
-    pass
+    def __init__(self):
+        Government.__init__(self,[])
 
 class Dictatorship(Government):
     pass
@@ -126,14 +127,18 @@ class Republic(Government):
 
 # Motion Superclass that lets player define a power move and set their allegiance to it before it takes effect
 class Motion(Supportable):
-    def __init__(self,name:str,initiator:User, government:Government,action):
+    def __init__(self,name:str,initiator:User, government:Government,action = ...,**kwargs):
         self.name = name
         self.initiator = initiator
         self.government = government
         self.supporters = []
         self.action = action
         self.government.openMotions.append(self)
-        self.exitMessage = "Motion passed"
+        if "message" in kwargs:
+            self.successMessage = kwargs["message"]
+        else:
+            self.successMessage = "Motion passed"
+        self.failMessage = "Motion Failed"
 
     def delete(self):
         for supporter in self.supporters:
@@ -146,17 +151,34 @@ class Motion(Supportable):
     def passMotion(self):
         self.action()
         self.delete()
-        return self.exitMessage
+        return self.successMessage
+    
+    def failMotion(self):
+        self.delete()
+        return self.failMessage
 
 # also a superclass, this type of motion seeks to start a new government
 class TakeOver(Motion):
-    def __init__(self,newGovernment:Government):
-        super().__init__(self)
+    def __init__(self,name:str,initiator:User, currentGovernment:Government,action,newGovernment:Government):
+        Motion.__init__(self,name,initiator,currentGovernment,action)
         self.newGovernment = newGovernment
 
     def passMotion(self):
+        self.delete()
         global currentGovernment
         currentGovernment = self.newGovernment
+
+class Coup(TakeOver):
+    pass
+
+class Revolt(TakeOver):
+    pass
+
+# a secret motion to kill
+class Assassination(Motion):
+    def __init__(self,target):
+        self.secret = True
+        ...
 
 class Vote:
     def __init__(self):
@@ -164,7 +186,7 @@ class Vote:
 
 
 allUsers = {}
-currentGovernment = Anarchy([])
+currentGovernment = Anarchy()
 
 @client.event
 async def on_ready():
