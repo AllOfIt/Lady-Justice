@@ -172,7 +172,7 @@ class Motion(Supportable):
 
 # also a superclass, this type of motion seeks to start a new government
 class TakeOver(Motion):
-    def __init__(self,name:str,initiator:User, currentGovernment:Government,action, newGovernment: Government):
+    def __init__(self, name: str, initiator: User, currentGovernment: Government, action, newGovernment: Government):
         Motion.__init__(self,name,initiator,currentGovernment,action)
         self.newGovernment = newGovernment
 
@@ -185,8 +185,10 @@ class TakeOver(Motion):
 class Coup(TakeOver):
     pass
 
+
 class Revolt(TakeOver):
     pass
+
 
 # a secret motion to kill
 class Assassination(Motion):
