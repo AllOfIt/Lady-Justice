@@ -28,14 +28,12 @@ class Supportable:
     def __str__(self):
         return self.name
 
-    # supporter should be a User instance but ":User" causes an error because its not difined yet :(
     def support(self, supporter: User):
         if supporter in self.supporters:
             return f"You already support {self}"
         self.supporters.append(supporter)
         return f"You have pledged your support to {self}"
 
-    # same issue with ":User"
     def removeSupport(self, supporter: User):
         if supporter in self.supporters:
             self.supporters.remove(supporter)
