@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import datetime
 
 import discord
@@ -6,6 +8,7 @@ from discord.ext.commands import MissingPermissions, has_permissions
 from config import TOKEN
 
 intents = discord.Intents.default()
+
 intents.message_content = True
 
 client = discord.Client(intents=intents)
@@ -26,14 +29,14 @@ class Supportable:
         return self.name
 
     # supporter should be a User instance but ":User" causes an error because its not difined yet :(
-    def support(self, supporter):
+    def support(self, supporter: User):
         if supporter in self.supporters:
             return f"You already support {self}"
         self.supporters.append(supporter)
         return f"You have pledged your support to {self}"
 
     # same issue with ":User"
-    def removeSupport(self, supporter):
+    def removeSupport(self, supporter: User):
         if supporter in self.supporters:
             self.supporters.remove(supporter)
             return f"You have withdrawn your support from {self}"
