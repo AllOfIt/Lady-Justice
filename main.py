@@ -48,7 +48,7 @@ class User(Supportable):
         # adds the new user to the global user list
         userList[id] = self
         self.id = id
-        self.userObject: discord.User = client.get_user(id)
+        #self.userObject: discord.User = client.get_user(id)
         self.userList: dict = userList
         self.name = ""
         self.allegiance: User = None
@@ -56,6 +56,7 @@ class User(Supportable):
         self.bannedDate: datetime.datetime = None
         self.permaBanned: bool = False
         self.supporters = []
+        self.userList[self.id] = self
 
         self.updateDatabase(True)
 
@@ -74,16 +75,18 @@ class User(Supportable):
     def removeRole(self, role):
         pass
 
-    # todo: this needs fixing
     # target for both of these can be any supportable
-    def setAllegiance(self, target):
-
+    def setAllegiance(self, target: Supportable):
+        message = target.support(self)
         self.allegiance = target
-
         self.updateDatabase()
+        return message
 
-    def setSecretAllegiance(self, target):
-        pass
+    def setSecretAllegiance(self, target: Supportable):
+        message = target.support(self)
+        self.secretAllegiance = target
+        self.updateDatabase()
+        return message
 
     def ban(self):
         self.bannedDate = datetime.datetime.now()
@@ -104,6 +107,8 @@ class Government(Supportable):
         self.leaders = leaders
         self.openVotes = []
         self.openMotions = []
+        self.unprivilegedActions = []
+        self.privilegedActions = []
 
     # participants are the people who can vote, channel is where the vote takes place, action is function to run if the vote passes, duration is how long the vote will last
     # Example: currentGovernment.startVote(currentGovernment.leaders,ROUND_TABLE,Joeuser.ban())
@@ -111,34 +116,33 @@ class Government(Supportable):
         pass
 
 
+# how actions are taken
+# who the leaders are
 class Anarchy(Government):
     def __init__(self):
         Government.__init__(self,[])
 
 
 
-class Dictatorship(Government):
-    pass
+class Dictatorship(Government): ...
 
 
-class Monarchy(Government):
-    pass
+class Monarchy(Government): ...
 
 
-class Oligarchy(Government):
-    pass
+class Oligarchy(Government): ...
 
 
-class Democracy(Government):
-    pass
+class Democracy(Government): ...
 
 
-class Republic(Government):
-    pass
+class Republic(Government): ...
+
+class PowerGlove(Government): ...
 
 
 # Motion Superclass that lets player define a power move and set their allegiance to it before it takes effect
-class Motion(Supportable):
+class PowerMove(Supportable):
     def __init__(self, name: str, initiator: User, government: Government, action = ...,**kwargs):
         self.name = name
         self.initiator = initiator
@@ -164,7 +168,7 @@ class Motion(Supportable):
         self.action()
         self.delete()
         return self.successMessage
-    
+
     def failMotion(self):
         self.delete()
         return self.failMessage
@@ -172,9 +176,9 @@ class Motion(Supportable):
 
 
 # also a superclass, this type of motion seeks to start a new government
-class TakeOver(Motion):
+class TakeOver(PowerMove):
     def __init__(self, name: str, initiator: User, currentGovernment: Government, action, newGovernment: Government):
-        Motion.__init__(self,name,initiator,currentGovernment,action)
+        PowerMove.__init__(self,name,initiator,currentGovernment,action)
         self.newGovernment = newGovernment
 
     def passMotion(self):
@@ -192,7 +196,7 @@ class Revolt(TakeOver):
 
 
 # a secret motion to kill
-class Assassination(Motion):
+class Assassination(PowerMove):
     def __init__(self,target):
         self.secret = True
         ...
@@ -228,10 +232,8 @@ async def on_message(message: discord.Message):
 
 
 @client.event
-async def ban(
-    user, *, reason=None, delete_message_days=..., delete_message_seconds=...
-):
+async def ban(user, *, reason=None, delete_message_days=..., delete_message_seconds=...):
     print(f"Banning {user}")
 
-
-client.run(TOKEN)
+if __name__ == "__main__":
+    client.run(TOKEN)
